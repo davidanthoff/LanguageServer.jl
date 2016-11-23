@@ -5,7 +5,14 @@ function process(r::JSONRPC.Request{Val{Symbol("textDocument/definition")},TextD
     locations = map(methods(x).ms) do m
         (filename, line) = functionloc(m)
         filename = "file:$filename"
-        return Location(filename, line-1)
+        return Location(filename, line)
+    end
+
+    tdpp = r.params
+    blocks = get_blocks(word, tdpp, server)
+    for b in blocks
+        filename = tdpp.textDocument.uri
+        push!(locations, Location(filename, b.range.start.line))
     end
 
     response = JSONRPC.Response(get(r.id),locations)
